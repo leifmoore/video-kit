@@ -60,4 +60,20 @@ export const updateKieApiKey = async (apiKey) => {
   return response.data;
 };
 
+export const getAnthropicApiKey = async () => {
+  const response = await api.get('/api/env/anthropic-api-key');
+  return response.data;
+};
+
+export const updateAnthropicApiKey = async (apiKey) => {
+  const response = await api.put('/api/env/anthropic-api-key', { api_key: apiKey });
+  return response.data;
+};
+
+// Claude API
+export const fixTimestamps = async (prompt) => {
+  const response = await api.post('/api/claude/fix-timestamps', { prompt });
+  return response.data;
+};
+
 export default api;

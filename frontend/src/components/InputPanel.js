@@ -4,6 +4,8 @@ import SettingsPopup from './SettingsPopup';
 import { ReactComponent as SettingsIcon } from '../assets/icons/ic_settings.svg';
 import { ReactComponent as HistoryIcon } from '../assets/icons/ic_history.svg';
 import { ReactComponent as CloseIcon } from '../assets/icons/ic_close.svg';
+import { ReactComponent as SmartIcon } from '../assets/icons/ic_smart.svg';
+import { fixTimestamps } from '../services/api';
 
 function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [prompt, setPrompt] = useState('');
@@ -17,6 +19,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [historyViewActive, setHistoryViewActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCards, setExpandedCards] = useState({});
+  const [isFixingTimestamps, setIsFixingTimestamps] = useState(false);
   const settingsBtnRef = useRef(null);
 
   const toggleCardExpansion = (jobId) => {
@@ -38,6 +41,27 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       setSearchQuery('');
     }
     setHistoryViewActive(!historyViewActive);
+  };
+
+  const handleFixTimestamps = async () => {
+    if (!prompt.trim()) {
+      alert('Please enter a prompt first');
+      return;
+    }
+
+    setIsFixingTimestamps(true);
+    try {
+      const result = await fixTimestamps(prompt);
+      setPrompt(result.fixedPrompt);
+      if (!result.wasModified) {
+        alert('Timestamps are already in correct sequence');
+      }
+    } catch (error) {
+      console.error('Failed to fix timestamps:', error);
+      alert('Failed to fix timestamps: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setIsFixingTimestamps(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -168,17 +192,28 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       ) : (
         /* Normal Form View */
         <form onSubmit={handleSubmit} className="input-form">
-          {/* History icon button - top right */}
-          {promptHistory.length > 0 && (
+          {/* Top right buttons */}
+          <div className="top-right-buttons">
             <button
               type="button"
-              className="history-icon-btn"
-              onClick={toggleHistoryView}
-              title="View history"
+              className="fix-timestamps-btn"
+              onClick={handleFixTimestamps}
+              disabled={isGenerating || isFixingTimestamps || !prompt.trim()}
+              title="Clean up timestamps"
             >
-              <HistoryIcon />
+              <SmartIcon />
             </button>
-          )}
+            {promptHistory.length > 0 && (
+              <button
+                type="button"
+                className="history-icon-btn"
+                onClick={toggleHistoryView}
+                title="View history"
+              >
+                <HistoryIcon />
+              </button>
+            )}
+          </div>
 
           {/* Large prompt textarea - flexes to fill space */}
           <div className="prompt-section-new">

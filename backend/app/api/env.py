@@ -75,3 +75,39 @@ async def update_kie_api_key(update: ApiKeyUpdate):
         "message": "API key updated successfully",
         "api_key": update.api_key.strip()
     }
+
+
+@router.get("/env/anthropic-api-key")
+async def get_anthropic_api_key():
+    """Get the current Anthropic API key from .env file."""
+    env_vars = read_env_file()
+    api_key = env_vars.get('ANTHROPIC_API_KEY', '')
+
+    return {
+        "api_key": api_key,
+        "is_set": bool(api_key)
+    }
+
+
+@router.put("/env/anthropic-api-key")
+async def update_anthropic_api_key(update: ApiKeyUpdate):
+    """Update the Anthropic API key in .env file."""
+    if not update.api_key.strip():
+        raise HTTPException(status_code=400, detail="API key cannot be empty")
+
+    # Read existing env vars
+    env_vars = read_env_file()
+
+    # Update the API key
+    env_vars['ANTHROPIC_API_KEY'] = update.api_key.strip()
+
+    # Write back to file
+    write_env_file(env_vars)
+
+    # Update the current process environment (optional, for immediate effect)
+    os.environ['ANTHROPIC_API_KEY'] = update.api_key.strip()
+
+    return {
+        "message": "API key updated successfully",
+        "api_key": update.api_key.strip()
+    }

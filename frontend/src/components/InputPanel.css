@@ -133,11 +133,18 @@
   margin-top: auto;
 }
 
-/* History icon button - top right */
-.history-icon-btn {
+/* Top right buttons wrapper */
+.top-right-buttons {
   position: absolute;
   top: 2rem;
   right: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+/* History icon button */
+.history-icon-btn {
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -150,7 +157,6 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  z-index: 10;
 }
 
 .history-icon-btn:hover {
@@ -159,6 +165,37 @@
 }
 
 .history-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Fix timestamps button */
+.fix-timestamps-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.fix-timestamps-btn:hover:not(:disabled) {
+  border-color: transparent;
+  background-color: var(--bg-tertiary);
+}
+
+.fix-timestamps-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fix-timestamps-btn svg {
   width: 20px;
   height: 20px;
 }

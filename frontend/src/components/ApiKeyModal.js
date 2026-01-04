@@ -1,45 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import './ApiKeyModal.css';
-import { getKieApiKey, updateKieApiKey } from '../services/api';
+import { getKieApiKey, updateKieApiKey, getAnthropicApiKey, updateAnthropicApiKey } from '../services/api';
 
 function ApiKeyModal({ onClose }) {
-  const [apiKey, setApiKey] = useState('');
+  const [kieApiKey, setKieApiKey] = useState('');
+  const [anthropicApiKey, setAnthropicApiKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load current API key on mount
+  // Load current API keys on mount
   useEffect(() => {
-    const loadApiKey = async () => {
+    const loadApiKeys = async () => {
       try {
-        const data = await getKieApiKey();
-        if (data.api_key) {
-          setApiKey(data.api_key);
+        const [kieData, anthropicData] = await Promise.all([
+          getKieApiKey(),
+          getAnthropicApiKey()
+        ]);
+        if (kieData.api_key) {
+          setKieApiKey(kieData.api_key);
+        }
+        if (anthropicData.api_key) {
+          setAnthropicApiKey(anthropicData.api_key);
         }
       } catch (error) {
-        console.error('Failed to load API key:', error);
+        console.error('Failed to load API keys:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadApiKey();
+    loadApiKeys();
   }, []);
 
   const handleSave = async () => {
-    if (apiKey.trim()) {
-      setSaving(true);
-      try {
-        await updateKieApiKey(apiKey.trim());
-        alert('API Key saved successfully to .env file!');
-        onClose();
-      } catch (error) {
-        console.error('Failed to save API key:', error);
-        alert('Failed to save API key: ' + error.message);
-      } finally {
-        setSaving(false);
+    setSaving(true);
+    try {
+      const promises = [];
+      if (kieApiKey.trim()) {
+        promises.push(updateKieApiKey(kieApiKey.trim()));
       }
-    } else {
-      alert('Please enter a valid API key');
+      if (anthropicApiKey.trim()) {
+        promises.push(updateAnthropicApiKey(anthropicApiKey.trim()));
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        alert('API Keys saved successfully to .env file!');
+        onClose();
+      } else {
+        alert('Please enter at least one API key');
+      }
+    } catch (error) {
+      console.error('Failed to save API keys:', error);
+      alert('Failed to save API keys: ' + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -56,8 +71,8 @@ function ApiKeyModal({ onClose }) {
             Kie.ai API Key
             <input
               type="text"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              value={kieApiKey}
+              onChange={(e) => setKieApiKey(e.target.value)}
               placeholder="Enter your Kie.ai API key"
               autoFocus
               disabled={loading}
@@ -65,6 +80,20 @@ function ApiKeyModal({ onClose }) {
           </label>
           <p className="modal-hint">
             Get your API key from <a href="https://kie.ai" target="_blank" rel="noopener noreferrer">kie.ai</a>
+          </p>
+
+          <label>
+            Anthropic API Key
+            <input
+              type="text"
+              value={anthropicApiKey}
+              onChange={(e) => setAnthropicApiKey(e.target.value)}
+              placeholder="Enter your Anthropic API key"
+              disabled={loading}
+            />
+          </label>
+          <p className="modal-hint">
+            Get your API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer">console.anthropic.com</a>
           </p>
         </div>
 
