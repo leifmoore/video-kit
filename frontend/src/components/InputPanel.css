@@ -329,15 +329,13 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-}
-
-.generate-btn-new:hover:not(:disabled) {
-  opacity: 0.9;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .generate-btn-new:disabled {
@@ -378,18 +376,26 @@
   background-color: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.12s ease, color 0.12s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-}
-
-.orientation-btn:hover:not(:disabled) {
-  background-color: var(--bg-tertiary);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .orientation-btn.active {
+  background-color: var(--text-primary);
+}
+
+.orientation-btn:active {
+  background-color: var(--bg-tertiary);
+}
+
+.orientation-btn.active:active {
   background-color: var(--text-primary);
 }
 
@@ -397,6 +403,7 @@
 .orientation-btn img {
   width: 20px;
   height: 20px;
+  transition: filter 0.12s ease;
 }
 
 .orientation-btn img {
@@ -424,21 +431,25 @@
   background-color: var(--bg-card);
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-}
-
-.settings-btn:hover:not(:disabled) {
-  border-color: transparent;
-  background-color: var(--bg-tertiary);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .settings-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.settings-btn:active:not(:disabled) {
+  border-color: transparent;
+  background-color: var(--bg-tertiary);
 }
 
 .settings-btn svg,
@@ -449,4 +460,19 @@
 
 .settings-btn img {
   filter: var(--icon-filter);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .generate-btn-new:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  .orientation-btn:hover:not(:disabled) {
+    background-color: var(--bg-tertiary);
+  }
+
+  .settings-btn:hover:not(:disabled) {
+    border-color: transparent;
+    background-color: var(--bg-tertiary);
+  }
 }

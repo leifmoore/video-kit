@@ -18,6 +18,10 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [expandedCards, setExpandedCards] = useState({});
   const [isFixingTimestamps, setIsFixingTimestamps] = useState(false);
   const settingsBtnRef = useRef(null);
+  const skipSettingsClickRef = useRef(false);
+  const skipOrientationClickRef = useRef(false);
+  const toggleSettingsPopup = () =>
+    setShowSettingsPopup((prev) => !prev);
 
   const toggleCardExpansion = (jobId) => {
     setExpandedCards((prev) => ({
@@ -112,6 +116,36 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       return true;
     })
     .slice(0, 20);
+
+  const handleSettingsPointerDown = (event) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+      skipSettingsClickRef.current = true;
+      toggleSettingsPopup();
+    }
+  };
+
+  const handleSettingsClick = () => {
+    if (skipSettingsClickRef.current) {
+      skipSettingsClickRef.current = false;
+      return;
+    }
+    toggleSettingsPopup();
+  };
+
+  const handleOrientationPointerDown = (event, nextOrientation) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+      skipOrientationClickRef.current = true;
+      setAspectRatio(nextOrientation);
+    }
+  };
+
+  const handleOrientationClick = (nextOrientation) => {
+    if (skipOrientationClickRef.current) {
+      skipOrientationClickRef.current = false;
+      return;
+    }
+    setAspectRatio(nextOrientation);
+  };
 
   return (
     <div className="input-panel-new">
@@ -237,7 +271,10 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                   className={`orientation-btn ${
                     aspectRatio === 'portrait' ? 'active' : ''
                   }`}
-                  onClick={() => setAspectRatio('portrait')}
+                  onPointerDown={(event) =>
+                    handleOrientationPointerDown(event, 'portrait')
+                  }
+                  onClick={() => handleOrientationClick('portrait')}
                   title="Portrait"
                   aria-pressed={aspectRatio === 'portrait'}
                   aria-label="Portrait orientation"
@@ -249,7 +286,10 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                   className={`orientation-btn ${
                     aspectRatio === 'landscape' ? 'active' : ''
                   }`}
-                  onClick={() => setAspectRatio('landscape')}
+                  onPointerDown={(event) =>
+                    handleOrientationPointerDown(event, 'landscape')
+                  }
+                  onClick={() => handleOrientationClick('landscape')}
                   title="Landscape"
                   aria-pressed={aspectRatio === 'landscape'}
                   aria-label="Landscape orientation"
@@ -262,7 +302,8 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                   type="button"
                   className="settings-btn"
                   ref={settingsBtnRef}
-                  onClick={() => setShowSettingsPopup(!showSettingsPopup)}
+                  onPointerDown={handleSettingsPointerDown}
+                  onClick={handleSettingsClick}
                   title="Settings"
                 >
                   <img src="/icons/ic_settings.svg" alt="" />
