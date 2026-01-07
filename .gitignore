@@ -57,3 +57,4 @@ Screenshot*.png
 video-tool-sketch.png
 docker-compose.yml
 plan.md
+.env

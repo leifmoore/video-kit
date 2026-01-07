@@ -1,16 +1,13 @@
-import React, { useState, useRef } from 'react';
-import './InputPanel.css';
+'use client';
+
+import React, { useRef, useState } from 'react';
 import SettingsPopup from './SettingsPopup';
-import { ReactComponent as SettingsIcon } from '../assets/icons/ic_settings.svg';
-import { ReactComponent as HistoryIcon } from '../assets/icons/ic_history.svg';
-import { ReactComponent as CloseIcon } from '../assets/icons/ic_close.svg';
-import { ReactComponent as SmartIcon } from '../assets/icons/ic_smart.svg';
 import { fixTimestamps } from '../services/api';
 
 function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [prompt, setPrompt] = useState('');
-  const [aspectRatio, setAspectRatio] = useState('landscape'); // 'portrait' or 'landscape'
-  const [duration, setDuration] = useState(10); // 10 or 15
+  const [aspectRatio, setAspectRatio] = useState('landscape');
+  const [duration, setDuration] = useState(10);
   const [noMusic, setNoMusic] = useState(false);
   const [noCrowd, setNoCrowd] = useState(false);
   const [noCommentators, setNoCommentators] = useState(false);
@@ -23,9 +20,9 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const settingsBtnRef = useRef(null);
 
   const toggleCardExpansion = (jobId) => {
-    setExpandedCards(prev => ({
+    setExpandedCards((prev) => ({
       ...prev,
-      [jobId]: !prev[jobId]
+      [jobId]: !prev[jobId],
     }));
   };
 
@@ -36,7 +33,6 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
 
   const toggleHistoryView = () => {
     if (historyViewActive) {
-      // Reset expanded cards and search when closing
       setExpandedCards({});
       setSearchQuery('');
     }
@@ -58,7 +54,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       }
     } catch (error) {
       console.error('Failed to fix timestamps:', error);
-      alert('Failed to fix timestamps: ' + (error.response?.data?.detail || error.message));
+      alert('Failed to fix timestamps: ' + error.message);
     } finally {
       setIsFixingTimestamps(false);
     }
@@ -77,7 +73,6 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       return;
     }
 
-    // Build the final prompt with modifiers
     let finalPrompt = prompt.trim();
 
     if (noMusic) {
@@ -103,26 +98,24 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       music: noMusic,
       crowd: noCrowd,
       commentators: noCommentators,
-      likeAnime: likeAnime,
+      likeAnime,
       duration,
       aspectRatio: aspectRatio === 'portrait' ? '9:16' : '16:9',
     });
   };
 
-  // Get jobs for history, filtered by search query
   const promptHistory = jobs
-    .filter(job => {
+    .filter((job) => {
       if (searchQuery.trim()) {
         return job.prompt.toLowerCase().includes(searchQuery.toLowerCase());
       }
       return true;
     })
-    .slice(0, 20); // Show last 20
+    .slice(0, 20);
 
   return (
     <div className="input-panel-new">
       {historyViewActive ? (
-        /* History View */
         <div className="history-view">
           <div className="history-header">
             <input
@@ -138,7 +131,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
               onClick={toggleHistoryView}
               title="Close history"
             >
-              <CloseIcon />
+              <img src="/icons/ic_close.svg" alt="" />
             </button>
           </div>
 
@@ -146,9 +139,8 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
             {promptHistory.map((job) => {
               const isExpanded = expandedCards[job.id];
               const isLong = job.prompt.length > 200;
-              const truncatedText = isLong && !isExpanded
-                ? job.prompt.substring(0, 200)
-                : job.prompt;
+              const truncatedText =
+                isLong && !isExpanded ? job.prompt.substring(0, 200) : job.prompt;
 
               return (
                 <div
@@ -190,44 +182,56 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
           </div>
         </div>
       ) : (
-        /* Normal Form View */
         <form onSubmit={handleSubmit} className="input-form">
-          {/* Top right buttons */}
           <div className="top-right-buttons">
             <button
               type="button"
               className="fix-timestamps-btn"
               onClick={handleFixTimestamps}
-              disabled={isGenerating || isFixingTimestamps || !prompt.trim()}
-              title="Clean up timestamps"
+              disabled={isFixingTimestamps}
+              title={isFixingTimestamps ? 'Fixing timestamps...' : 'Fix timestamps'}
+              aria-label="Fix timestamps"
             >
-              <SmartIcon />
+              <img src="/icons/ic_fix_timestamps.svg" alt="" />
             </button>
-            {promptHistory.length > 0 && (
-              <button
-                type="button"
-                className="history-icon-btn"
-                onClick={toggleHistoryView}
-                title="View history"
-              >
-                <HistoryIcon />
-              </button>
-            )}
+            <button
+              type="button"
+              className="history-icon-btn"
+              onClick={toggleHistoryView}
+              title="Prompt history"
+            >
+              <img src="/icons/ic_history.svg" alt="" />
+            </button>
           </div>
 
-          {/* Large prompt textarea - flexes to fill space */}
+          {showSettingsPopup && (
+            <SettingsPopup
+              aspectRatio={aspectRatio}
+              duration={duration}
+              noMusic={noMusic}
+              noCrowd={noCrowd}
+              noCommentators={noCommentators}
+              likeAnime={likeAnime}
+              onAspectRatioChange={setAspectRatio}
+              onDurationChange={setDuration}
+              onToggleMusic={() => setNoMusic((prev) => !prev)}
+              onToggleCrowd={() => setNoCrowd((prev) => !prev)}
+              onToggleCommentators={() => setNoCommentators((prev) => !prev)}
+              onToggleLikeAnime={() => setLikeAnime((prev) => !prev)}
+              onClose={() => setShowSettingsPopup(false)}
+              triggerRef={settingsBtnRef}
+            />
+          )}
+
           <div className="prompt-section-new">
             <textarea
+              placeholder="your next big idea..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="your next big idea..."
-              disabled={isGenerating}
             />
           </div>
 
-          {/* Controls pinned to bottom */}
           <div className="input-controls">
-            {/* Generate button and settings */}
             <div className="bottom-row">
               <button
                 type="submit"
@@ -235,38 +239,18 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                 disabled={isGenerating}
               >
                 {isGenerating ? 'Generating...' : 'Generate'}
+                <img src="/icons/ic_smart.svg" alt="" />
               </button>
-
               <div className="settings-btn-wrapper">
                 <button
-                  ref={settingsBtnRef}
                   type="button"
                   className="settings-btn"
+                  ref={settingsBtnRef}
                   onClick={() => setShowSettingsPopup(!showSettingsPopup)}
-                  disabled={isGenerating}
                   title="Settings"
                 >
-                  <SettingsIcon />
+                  <img src="/icons/ic_settings.svg" alt="" />
                 </button>
-
-                {showSettingsPopup && (
-                  <SettingsPopup
-                    aspectRatio={aspectRatio}
-                    duration={duration}
-                    noMusic={noMusic}
-                    noCrowd={noCrowd}
-                    noCommentators={noCommentators}
-                    likeAnime={likeAnime}
-                    onAspectRatioChange={setAspectRatio}
-                    onDurationChange={setDuration}
-                    onToggleMusic={() => setNoMusic(!noMusic)}
-                    onToggleCrowd={() => setNoCrowd(!noCrowd)}
-                    onToggleCommentators={() => setNoCommentators(!noCommentators)}
-                    onToggleLikeAnime={() => setLikeAnime(!likeAnime)}
-                    onClose={() => setShowSettingsPopup(false)}
-                    triggerRef={settingsBtnRef}
-                  />
-                )}
               </div>
             </div>
           </div>

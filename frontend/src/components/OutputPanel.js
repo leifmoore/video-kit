@@ -1,30 +1,20 @@
-import React, { useEffect, useState, useRef } from 'react';
-import './OutputPanel.css';
-import { ReactComponent as DownloadIcon } from '../assets/icons/ic_download.svg';
-import { ReactComponent as CopyIcon } from '../assets/icons/ic_copy.svg';
-import { ReactComponent as ScreenshotIcon } from '../assets/icons/ic_screenshot.svg';
-import { ReactComponent as AddImageIcon } from '../assets/icons/ic_addtogallery.svg';
-import { ReactComponent as ListIcon } from '../assets/icons/ic_list.svg';
-import { ReactComponent as EmbedIcon } from '../assets/icons/ic_embed.svg';
-import { ReactComponent as PrevUpIcon } from '../assets/icons/ic_prev_up.svg';
-import { ReactComponent as NextDownIcon } from '../assets/icons/ic_next_down.svg';
-import { ReactComponent as MoreIcon } from '../assets/icons/ic_more_vert.svg';
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import VideoRowMenu from './VideoRowMenu';
-import { deleteJob, checkJobStatus } from '../services/api';
+import { getDownloadUrl } from '../services/api';
 
 function OutputPanel({
   jobs,
-  currentVideo,
-  onVideoSelect,
   viewMode,
-  theme,
   onToggleView,
-  onJobDeleted,
-  onImageAdded
+  onDeleteJob,
+  onCheckStatus,
+  onAddImage,
 }) {
   const [selectedJob, setSelectedJob] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'completed', 'failed'
+  const [statusFilter, setStatusFilter] = useState('all');
   const [currentEmbedIndex, setCurrentEmbedIndex] = useState(0);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
@@ -44,8 +34,8 @@ function OutputPanel({
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Convert to blob and download
       canvas.toBlob((blob) => {
+        if (!blob) return;
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -73,28 +63,12 @@ function OutputPanel({
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Convert to blob and upload
       canvas.toBlob(async (blob) => {
+        if (!blob) return;
         try {
-          const formData = new FormData();
-          formData.append('file', blob, `frame-${Date.now()}.png`);
-
-          const response = await fetch('http://localhost:8000/api/custom-images/upload', {
-            method: 'POST',
-            body: formData,
-          });
-
-          if (response.ok) {
-            const newImage = await response.json();
-            if (onImageAdded) {
-              onImageAdded(newImage);
-            }
-          } else {
-            console.error('Failed to upload frame to gallery');
-            alert('Failed to add frame to gallery');
-          }
+          await onAddImage(blob, `frame-${Date.now()}.png`);
         } catch (error) {
-          console.error('Error uploading frame:', error);
+          console.error('Error saving frame:', error);
           alert('Failed to add frame to gallery: ' + error.message);
         }
       }, 'image/png');
@@ -104,30 +78,25 @@ function OutputPanel({
     }
   };
 
-  // Auto-select first completed video
   useEffect(() => {
     if (!selectedJob && jobs.length > 0) {
-      const firstCompleted = jobs.find(job => job.status === 'completed');
+      const firstCompleted = jobs.find((job) => job.status === 'completed');
       if (firstCompleted) {
         setSelectedJob(firstCompleted);
-        onVideoSelect(firstCompleted);
       }
     }
-  }, [jobs, selectedJob, onVideoSelect]);
+  }, [jobs, selectedJob]);
 
-  // Filter jobs based on selected status
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = jobs.filter((job) => {
     if (statusFilter === 'completed' && job.status !== 'completed') return false;
     if (statusFilter === 'failed' && job.status !== 'failed') return false;
     return true;
   });
 
-  // Get completed jobs for embed mode
-  const completedJobs = jobs.filter(job => job.status === 'completed');
+  const completedJobs = jobs.filter((job) => job.status === 'completed');
 
   const handleVideoClick = (job) => {
     setSelectedJob(job);
-    onVideoSelect(job);
   };
 
   const getStatusBadge = (status) => {
@@ -150,22 +119,15 @@ function OutputPanel({
   };
 
   const downloadVideo = (job) => {
-    if (job.videoUrl) {
-      // Extract job_id and filename from videoUrl (e.g., /videos/{job-id}/video.mp4)
-      const urlParts = job.videoUrl.split('/');
-      const jobId = urlParts[urlParts.length - 2]; // Get job-id
-      const filename = urlParts[urlParts.length - 1]; // Get filename
-
-      // Use the download endpoint
-      const link = document.createElement('a');
-      link.href = `http://localhost:8000/api/download/${jobId}/${filename}`;
-      link.download = `video-${job.id}.mp4`;
-
-      // Append to body, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (!job.videoUrl) {
+      return;
     }
+    const link = document.createElement('a');
+    link.href = getDownloadUrl(job.videoUrl);
+    link.download = `video-${job.id}.mp4`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const copyPrompt = (prompt) => {
@@ -178,7 +140,6 @@ function OutputPanel({
       const nextIndex = currentEmbedIndex + 1;
       setCurrentEmbedIndex(nextIndex);
       setSelectedJob(completedJobs[nextIndex]);
-      onVideoSelect(completedJobs[nextIndex]);
     }
   };
 
@@ -187,12 +148,11 @@ function OutputPanel({
       const prevIndex = currentEmbedIndex - 1;
       setCurrentEmbedIndex(prevIndex);
       setSelectedJob(completedJobs[prevIndex]);
-      onVideoSelect(completedJobs[prevIndex]);
     }
   };
 
   const handleMoreClick = (e, job) => {
-    e.stopPropagation(); // Prevent video selection when clicking more
+    e.stopPropagation();
     setOpenMenuJobId(job.id);
   };
 
@@ -202,29 +162,26 @@ function OutputPanel({
 
   const handleDownloadClick = (job) => {
     downloadVideo(job);
-    setOpenMenuJobId(null); // Close menu
+    setOpenMenuJobId(null);
   };
 
   const handleCopyPromptClick = (job) => {
     copyPrompt(job.prompt);
-    setOpenMenuJobId(null); // Close menu
+    setOpenMenuJobId(null);
   };
 
   const handleDeleteClick = (job) => {
     setJobToDelete(job);
     setShowDeleteConfirmation(true);
-    setOpenMenuJobId(null); // Close menu
+    setOpenMenuJobId(null);
   };
 
   const handleCheckStatusClick = async (job) => {
-    setOpenMenuJobId(null); // Close menu
+    setOpenMenuJobId(null);
     try {
-      const result = await checkJobStatus(job.id);
+      const result = await onCheckStatus(job.id);
       if (result.status === 'completed') {
-        // Notify parent to refresh jobs list
-        if (onJobDeleted) {
-          onJobDeleted(null); // Trigger refresh without deletion
-        }
+        alert('Job completed');
       } else if (result.status === 'failed') {
         alert('Job failed: ' + result.message);
       } else {
@@ -239,16 +196,10 @@ function OutputPanel({
   const handleConfirmDelete = async () => {
     if (jobToDelete) {
       try {
-        await deleteJob(jobToDelete.id);
+        await onDeleteJob(jobToDelete.id);
 
-        // Clear selected job if it's the one being deleted
         if (selectedJob?.id === jobToDelete.id) {
           setSelectedJob(null);
-        }
-
-        // Notify parent component to refresh jobs list
-        if (onJobDeleted) {
-          onJobDeleted(jobToDelete.id);
         }
 
         setShowDeleteConfirmation(false);
@@ -267,30 +218,29 @@ function OutputPanel({
 
   return (
     <div className="output-panel-new">
-      {/* View toggle button - absolute positioned top right */}
       <button
         className="view-toggle-btn"
         onClick={onToggleView}
         title={viewMode === 'list' ? 'Big embed view' : 'List view'}
       >
-        {viewMode === 'list' ? <EmbedIcon /> : <ListIcon />}
+        <img
+          src={viewMode === 'list' ? '/icons/ic_embed.svg' : '/icons/ic_list.svg'}
+          alt=""
+        />
       </button>
 
-      {/* Main content area */}
       <div className={`output-content ${viewMode === 'list' ? 'list-mode' : ''}`}>
         {viewMode === 'embed' ? (
-          /* Big Embed Mode */
           <div className="embed-view">
             {selectedJob && selectedJob.status === 'completed' ? (
               <>
-                {/* Previous button at top */}
                 {completedJobs.length > 1 && currentEmbedIndex > 0 && (
                   <button
                     className="nav-btn-top"
                     onClick={handlePrevEmbed}
                     title="Previous video"
                   >
-                    <PrevUpIcon />
+                    <img src="/icons/ic_prev_up.svg" alt="" />
                   </button>
                 )}
 
@@ -303,24 +253,40 @@ function OutputPanel({
                     crossOrigin="anonymous"
                     className="embed-video-player"
                   >
-                    <source src={`http://localhost:8000${selectedJob.videoUrl}`} type="video/mp4" />
+                    <source src={selectedJob.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
 
                 <div className="embed-info">
                   <div className="embed-actions">
-                    <button className="embed-btn" onClick={() => downloadVideo(selectedJob)} title="Download video file">
-                      <DownloadIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={() => downloadVideo(selectedJob)}
+                      title="Download video file"
+                    >
+                      <img src="/icons/ic_download.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={() => copyPrompt(selectedJob.prompt)} title="Copy prompt">
-                      <CopyIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={() => copyPrompt(selectedJob.prompt)}
+                      title="Copy prompt"
+                    >
+                      <img src="/icons/ic_copy.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={captureFrame} title="Download current frame as file">
-                      <ScreenshotIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={captureFrame}
+                      title="Download current frame as file"
+                    >
+                      <img src="/icons/ic_screenshot.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={captureFrameToGallery} title="Save current frame to gallery">
-                      <AddImageIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={captureFrameToGallery}
+                      title="Save current frame to gallery"
+                    >
+                      <img src="/icons/ic_addtogallery.svg" alt="" />
                     </button>
                   </div>
 
@@ -331,16 +297,16 @@ function OutputPanel({
                   </div>
                 </div>
 
-                {/* Next button at bottom */}
-                {completedJobs.length > 1 && currentEmbedIndex < completedJobs.length - 1 && (
-                  <button
-                    className="nav-btn-bottom"
-                    onClick={handleNextEmbed}
-                    title="Next video"
-                  >
-                    <NextDownIcon />
-                  </button>
-                )}
+                {completedJobs.length > 1 &&
+                  currentEmbedIndex < completedJobs.length - 1 && (
+                    <button
+                      className="nav-btn-bottom"
+                      onClick={handleNextEmbed}
+                      title="Next video"
+                    >
+                      <img src="/icons/ic_next_down.svg" alt="" />
+                    </button>
+                  )}
               </>
             ) : (
               <div className="embed-placeholder">
@@ -350,9 +316,7 @@ function OutputPanel({
             )}
           </div>
         ) : (
-          /* List Mode - Big embed at top, then scrollable list below */
           <div className="list-view">
-            {/* Big embed at top */}
             {selectedJob && selectedJob.status === 'completed' ? (
               <div className="list-embed-section">
                 <div className="embed-video-container">
@@ -364,24 +328,40 @@ function OutputPanel({
                     crossOrigin="anonymous"
                     className="embed-video-player"
                   >
-                    <source src={`http://localhost:8000${selectedJob.videoUrl}`} type="video/mp4" />
+                    <source src={selectedJob.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
 
                 <div className="embed-info">
                   <div className="embed-actions">
-                    <button className="embed-btn" onClick={() => downloadVideo(selectedJob)} title="Download video file">
-                      <DownloadIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={() => downloadVideo(selectedJob)}
+                      title="Download video file"
+                    >
+                      <img src="/icons/ic_download.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={() => copyPrompt(selectedJob.prompt)} title="Copy prompt">
-                      <CopyIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={() => copyPrompt(selectedJob.prompt)}
+                      title="Copy prompt"
+                    >
+                      <img src="/icons/ic_copy.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={captureFrame} title="Download current frame as file">
-                      <ScreenshotIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={captureFrame}
+                      title="Download current frame as file"
+                    >
+                      <img src="/icons/ic_screenshot.svg" alt="" />
                     </button>
-                    <button className="embed-btn" onClick={captureFrameToGallery} title="Save current frame to gallery">
-                      <AddImageIcon />
+                    <button
+                      className="embed-btn"
+                      onClick={captureFrameToGallery}
+                      title="Save current frame to gallery"
+                    >
+                      <img src="/icons/ic_addtogallery.svg" alt="" />
                     </button>
                   </div>
 
@@ -399,7 +379,6 @@ function OutputPanel({
               </div>
             )}
 
-            {/* Filter chips */}
             <div className="list-header">
               <div className="filter-chips">
                 <button
@@ -409,7 +388,9 @@ function OutputPanel({
                   All
                 </button>
                 <button
-                  className={`filter-chip ${statusFilter === 'completed' ? 'active' : ''}`}
+                  className={`filter-chip ${
+                    statusFilter === 'completed' ? 'active' : ''
+                  }`}
                   onClick={() => setStatusFilter('completed')}
                 >
                   Success
@@ -423,7 +404,6 @@ function OutputPanel({
               </div>
             </div>
 
-            {/* Video list */}
             <div className="video-list">
               {filteredJobs.length === 0 ? (
                 <div className="empty-list">
@@ -433,12 +413,14 @@ function OutputPanel({
                 filteredJobs.map((job) => (
                   <div
                     key={job.id}
-                    className={`video-list-item ${selectedJob?.id === job.id ? 'selected' : ''}`}
+                    className={`video-list-item ${
+                      selectedJob?.id === job.id ? 'selected' : ''
+                    }`}
                     onClick={() => job.status === 'completed' && handleVideoClick(job)}
                   >
                     <div className="list-item-thumbnail">
                       {job.status === 'completed' && job.thumbnailUrl ? (
-                        <img src={`http://localhost:8000${job.thumbnailUrl}`} alt="Thumbnail" />
+                        <img src={job.thumbnailUrl} alt="Thumbnail" />
                       ) : (
                         <div className="thumbnail-placeholder">
                           {getStatusBadge(job.status)}
@@ -447,11 +429,15 @@ function OutputPanel({
                     </div>
 
                     <div className="list-item-info">
-                      <div className="list-item-prompt">{job.prompt.substring(0, 80)}...</div>
+                      <div className="list-item-prompt">
+                        {job.prompt.substring(0, 80)}...
+                      </div>
                       <div className="list-item-meta">
                         {getStatusBadge(job.status)}
                         {job.cost && (
-                          <span className="list-item-cost">${job.cost.toFixed(2)}</span>
+                          <span className="list-item-cost">
+                            ${job.cost.toFixed(2)}
+                          </span>
                         )}
                         <span className="list-item-date">
                           {new Date(job.createdAt).toLocaleDateString()}
@@ -460,12 +446,14 @@ function OutputPanel({
                     </div>
 
                     <button
-                      ref={(el) => (menuButtonRefs.current[job.id] = el)}
+                      ref={(el) => {
+                        menuButtonRefs.current[job.id] = el;
+                      }}
                       className="list-item-more-btn"
                       onClick={(e) => handleMoreClick(e, job)}
                       title="More options"
                     >
-                      <MoreIcon />
+                      <img src="/icons/ic_more_vert.svg" alt="" />
                     </button>
 
                     {openMenuJobId === job.id && (
@@ -487,11 +475,10 @@ function OutputPanel({
         )}
       </div>
 
-      {/* Delete confirmation modal */}
       {showDeleteConfirmation && (
         <ConfirmationModal
           title="Delete Video"
-          message={`Are you sure you want to delete this video? This action cannot be undone.`}
+          message="Are you sure you want to delete this video? This action cannot be undone."
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
         />

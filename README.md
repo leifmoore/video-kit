@@ -29,19 +29,19 @@ Feed of all generations with thumbnails, status badges, and quick actions via th
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 18, Axios, CSS Variables |
-| Backend | FastAPI, Uvicorn, Async/Await |
-| Video Processing | OpenCV (thumbnail extraction) |
-| AI API | Kie.ai Sora 2 Image-to-Video |
-| Storage | JSON files, Local filesystem |
+| Frontend | Next.js 14 (App Router), React 18, CSS Variables |
+| Backend | Next.js API Routes (Vercel Serverless) |
+| Video Processing | Browser canvas (screenshots) |
+| AI API | Kie.ai Sora 2 Image-to-Video, Anthropic (timestamp fixes) |
+| Storage | IndexedDB (browser-local) |
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 14+
+- Node.js 18+
 - [Kie.ai API key](https://kie.ai)
+- [Anthropic API key](https://console.anthropic.com) (optional, for timestamp fixes)
 
 ### Installation
 
@@ -50,52 +50,29 @@ Feed of all generations with thumbnails, status badges, and quick actions via th
 git clone https://github.com/mageframe/video-kit.git
 cd video-kit
 
-# Install backend dependencies
-cd backend
-pip3 install -r requirements.txt
-
 # Install frontend dependencies
-cd ../frontend
+cd frontend
 npm install
-
-# Create data directories
-cd ..
-mkdir -p data/fighters data/videos data/custom-images
 ```
 
 ### Configuration
 
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your Kie.ai API key:
+Create a `frontend/.env.local` file:
 
 ```
 KIE_API_KEY=your_kie_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
 ### Running
 
-**Terminal 1 - Backend:**
-```bash
-cd backend
-export DATA_PATH="../data"
-export KIE_API_KEY="your_api_key"
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-**Terminal 2 - Frontend:**
 ```bash
 cd frontend
-REACT_APP_API_URL=http://localhost:8000 npm start
+npm run dev
 ```
 
 **Access:**
 - App: http://localhost:3000
-- API Docs: http://localhost:8000/docs
 
 ## Usage
 
@@ -112,36 +89,19 @@ REACT_APP_API_URL=http://localhost:8000 npm start
 
 ```
 video-kit/
-├── backend/
-│   ├── app/
-│   │   ├── api/           # REST endpoints
-│   │   │   ├── generate.py
-│   │   │   ├── jobs.py
-│   │   │   ├── fighters.py
-│   │   │   ├── custom_images.py
-│   │   │   └── env.py
-│   │   ├── models/        # Pydantic schemas
-│   │   ├── services/      # Business logic
-│   │   │   ├── kie_client.py    # Kie.ai API client
-│   │   │   └── job_manager.py   # Job lifecycle
-│   │   └── main.py        # FastAPI app
-│   └── requirements.txt
+├── backend/               # Legacy local server (no longer used for Vercel)
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # React components
-│   │   │   ├── InputPanel.js
-│   │   │   ├── OutputPanel.js
-│   │   │   ├── ImageGallery.js
-│   │   │   ├── SettingsPopup.js
-│   │   │   └── ...
-│   │   ├── assets/icons/  # SVG icons
-│   │   ├── services/api.js
+│   │   ├── app/            # Next.js app router + API routes
+│   │   │   ├── api/         # Serverless API routes
+│   │   │   └── layout.js
+│   │   ├── components/     # UI components
+│   │   ├── assets/icons/   # SVG icons
+│   │   ├── services/
+│   │   │   ├── api.js       # API helpers
+│   │   │   └── storage.js   # IndexedDB storage
 │   │   └── App.js
 │   └── package.json
-├── data/                  # Local storage (gitignored)
-│   ├── videos/            # Generated videos
-│   ├── custom-images/     # Uploaded images
-│   └── jobs.json          # Job history
 └── plan.md               # Implementation notes
 ```
 
@@ -149,13 +109,11 @@ video-kit/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/generate` | Submit video generation job |
-| GET | `/api/jobs` | List all jobs |
-| GET | `/api/jobs/{id}` | Get job status |
-| DELETE | `/api/jobs/{id}` | Delete a job |
-| POST | `/api/custom-images/upload` | Upload reference image |
-| GET | `/api/custom-images` | List uploaded images |
-| DELETE | `/api/custom-images/{id}` | Delete uploaded image |
+| POST | `/api/kie/upload` | Upload image to Kie.ai |
+| POST | `/api/kie/generate` | Submit video generation |
+| GET | `/api/kie/status?taskId=...` | Check generation status |
+| GET | `/api/kie/download?url=...` | Proxy download |
+| POST | `/api/claude/fix-timestamps` | Fix prompt timestamps |
 
 Full interactive documentation available at `/docs` when the backend is running.
 
@@ -175,9 +133,7 @@ Full interactive documentation available at `/docs` when the backend is running.
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `KIE_API_KEY` | Yes | - | Your Kie.ai API key |
-| `DATA_PATH` | No | `../data` | Path to data storage |
-| `ENVIRONMENT` | No | `development` | Environment mode |
-| `REACT_APP_API_URL` | No | - | Backend URL for frontend |
+| `ANTHROPIC_API_KEY` | No | - | Used for timestamp fixes |
 
 ### Video Generation Options
 
@@ -189,8 +145,8 @@ Full interactive documentation available at `/docs` when the backend is running.
 
 ## Known Limitations
 
-- **No Authentication** - Designed for local/personal use
-- **JSON Storage** - Uses flat files, not a database
+- **No Authentication** - Designed for personal use
+- **Browser Storage** - Jobs/images live in IndexedDB (clearable in the UI)
 - **Single Model** - Currently only supports Sora 2
 - **No Webhooks** - Uses polling for status updates
 

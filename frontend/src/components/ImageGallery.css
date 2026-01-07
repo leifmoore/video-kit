@@ -132,10 +132,15 @@
   background-color: rgba(0, 0, 0, 0.8);
 }
 
-.gallery-menu-btn svg {
+.gallery-menu-btn svg,
+.gallery-menu-btn img {
   width: 16px;
   height: 16px;
   fill: white;
+}
+
+.gallery-menu-btn img {
+  filter: invert(1);
 }
 
 /* Responsive */

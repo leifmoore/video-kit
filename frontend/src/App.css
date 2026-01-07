@@ -55,9 +55,14 @@
   background-color: var(--bg-tertiary);
 }
 
-.control-btn svg {
+.control-btn svg,
+.control-btn img {
   width: 20px;
   height: 20px;
+}
+
+.control-btn img {
+  filter: var(--icon-filter);
 }
 
 /* Responsive layout - stack columns vertically on mobile */

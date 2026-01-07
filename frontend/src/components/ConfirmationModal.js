@@ -1,5 +1,6 @@
+'use client';
+
 import React from 'react';
-import './ConfirmationModal.css';
 
 function ConfirmationModal({ title, message, onConfirm, onCancel }) {
   return (

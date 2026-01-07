@@ -1,10 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import './SettingsPopup.css';
-import { ReactComponent as PortraitIcon } from '../assets/icons/ic_portrait.svg';
-import { ReactComponent as LandscapeIcon } from '../assets/icons/ic_landscape.svg';
-import { ReactComponent as DurationIcon } from '../assets/icons/ic_duration.svg';
-import { ReactComponent as EditIcon } from '../assets/icons/ic_edit.svg';
 
 function SettingsPopup({
   aspectRatio,
@@ -20,17 +17,15 @@ function SettingsPopup({
   onToggleCommentators,
   onToggleLikeAnime,
   onClose,
-  triggerRef
+  triggerRef,
 }) {
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const popupRef = useRef(null);
   const [position, setPosition] = useState({ bottom: 0, right: 0 });
 
-  // Calculate position based on trigger button
   useEffect(() => {
     if (triggerRef?.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      // Position popup aligned with right edge of button
       setPosition({
         bottom: window.innerHeight - rect.top + 10,
         right: window.innerWidth - rect.right - 10,
@@ -38,11 +33,14 @@ function SettingsPopup({
     }
   }, [triggerRef]);
 
-  // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target) &&
-          triggerRef?.current && !triggerRef.current.contains(event.target)) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target) &&
+        triggerRef?.current &&
+        !triggerRef.current.contains(event.target)
+      ) {
         onClose();
       }
     };
@@ -73,13 +71,15 @@ function SettingsPopup({
         right: `${position.right}px`,
       }}
     >
-      {/* Orientation option */}
       <div
         className="popup-option"
         onMouseEnter={() => setActiveSubmenu('orientation')}
       >
         <div className="option-left">
-          {aspectRatio === 'portrait' ? <PortraitIcon /> : <LandscapeIcon />}
+          <img
+            src={aspectRatio === 'portrait' ? '/icons/ic_portrait.svg' : '/icons/ic_landscape.svg'}
+            alt=""
+          />
           <span className="option-label">Orientation</span>
         </div>
         <div className="option-right">
@@ -89,14 +89,13 @@ function SettingsPopup({
           <span className="option-arrow">›</span>
         </div>
 
-        {/* Orientation submenu */}
         {activeSubmenu === 'orientation' && (
           <div className="submenu">
             <div
               className="submenu-item"
               onClick={() => handleOrientationSelect('portrait')}
             >
-              <PortraitIcon />
+              <img src="/icons/ic_portrait.svg" alt="" />
               <span>Portrait</span>
               {aspectRatio === 'portrait' && <span className="checkmark">✓</span>}
             </div>
@@ -104,7 +103,7 @@ function SettingsPopup({
               className="submenu-item"
               onClick={() => handleOrientationSelect('landscape')}
             >
-              <LandscapeIcon />
+              <img src="/icons/ic_landscape.svg" alt="" />
               <span>Landscape</span>
               {aspectRatio === 'landscape' && <span className="checkmark">✓</span>}
             </div>
@@ -112,13 +111,12 @@ function SettingsPopup({
         )}
       </div>
 
-      {/* Duration option */}
       <div
         className="popup-option"
         onMouseEnter={() => setActiveSubmenu('duration')}
       >
         <div className="option-left">
-          <DurationIcon />
+          <img src="/icons/ic_duration.svg" alt="" />
           <span className="option-label">Duration</span>
         </div>
         <div className="option-right">
@@ -126,22 +124,15 @@ function SettingsPopup({
           <span className="option-arrow">›</span>
         </div>
 
-        {/* Duration submenu */}
         {activeSubmenu === 'duration' && (
           <div className="submenu">
-            <div
-              className="submenu-item"
-              onClick={() => handleDurationSelect(10)}
-            >
-              <DurationIcon />
+            <div className="submenu-item" onClick={() => handleDurationSelect(10)}>
+              <img src="/icons/ic_duration.svg" alt="" />
               <span>10s</span>
               {duration === 10 && <span className="checkmark">✓</span>}
             </div>
-            <div
-              className="submenu-item"
-              onClick={() => handleDurationSelect(15)}
-            >
-              <DurationIcon />
+            <div className="submenu-item" onClick={() => handleDurationSelect(15)}>
+              <img src="/icons/ic_duration.svg" alt="" />
               <span>15s</span>
               {duration === 15 && <span className="checkmark">✓</span>}
             </div>
@@ -149,47 +140,33 @@ function SettingsPopup({
         )}
       </div>
 
-      {/* Modifiers option */}
       <div
         className="popup-option"
         onMouseEnter={() => setActiveSubmenu('modifiers')}
       >
         <div className="option-left">
-          <EditIcon />
+          <img src="/icons/ic_edit.svg" alt="" />
           <span className="option-label">Prompt modifiers</span>
         </div>
         <div className="option-right">
           <span className="option-arrow">›</span>
         </div>
 
-        {/* Modifiers submenu */}
         {activeSubmenu === 'modifiers' && (
           <div className="submenu">
-            <div
-              className="submenu-item"
-              onClick={onToggleMusic}
-            >
+            <div className="submenu-item" onClick={onToggleMusic}>
               <span>No music</span>
               {noMusic && <span className="checkmark">✓</span>}
             </div>
-            <div
-              className="submenu-item"
-              onClick={onToggleCrowd}
-            >
+            <div className="submenu-item" onClick={onToggleCrowd}>
               <span>No crowd</span>
               {noCrowd && <span className="checkmark">✓</span>}
             </div>
-            <div
-              className="submenu-item"
-              onClick={onToggleCommentators}
-            >
+            <div className="submenu-item" onClick={onToggleCommentators}>
               <span>No commentators</span>
               {noCommentators && <span className="checkmark">✓</span>}
             </div>
-            <div
-              className="submenu-item"
-              onClick={onToggleLikeAnime}
-            >
+            <div className="submenu-item" onClick={onToggleLikeAnime}>
               <span>Like anime</span>
               {likeAnime && <span className="checkmark">✓</span>}
             </div>
