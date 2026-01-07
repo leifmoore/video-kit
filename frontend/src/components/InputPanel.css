@@ -341,6 +341,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .generate-btn-new:hover:not(:disabled) {
@@ -350,6 +354,11 @@
 .generate-btn-new:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.generate-btn-new svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* Settings button wrapper */
