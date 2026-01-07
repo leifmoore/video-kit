@@ -2,11 +2,6 @@
 
 import React, { useRef, useState } from 'react';
 import ImageMenu from './ImageMenu';
-import MoreVertIcon from '../assets/icons/ic_more_vert.svg';
-import KeyIcon from '../assets/icons/ic_key.svg';
-import LightIcon from '../assets/icons/ic_light.svg';
-import NightIcon from '../assets/icons/ic_night.svg';
-import DeleteIcon from '../assets/icons/ic_delete.svg';
 
 function ImageGallery({
   images,
@@ -93,7 +88,7 @@ function ImageGallery({
                 className="gallery-menu-btn"
                 onClick={(e) => handleMenuClick(e, image.id)}
               >
-                <MoreVertIcon />
+                <img src="/icons/ic_more_vert.svg" alt="" />
               </button>
               {menuOpen === image.id && (
                 <ImageMenu
@@ -109,21 +104,24 @@ function ImageGallery({
 
       <div className="gallery-bottom-controls">
         <button className="control-btn" onClick={onOpenApiKey} title="API Key">
-          <KeyIcon />
+          <img src="/icons/ic_key.svg" alt="" />
         </button>
         <button
           className="control-btn"
           onClick={onClearLocalData}
           title="Clear local data"
         >
-          <DeleteIcon />
+          <img src="/icons/ic_delete.svg" alt="" />
         </button>
         <button
           className="control-btn"
           onClick={onToggleTheme}
           title={theme === 'light' ? 'Dark mode' : 'Light mode'}
         >
-          {theme === 'light' ? <NightIcon /> : <LightIcon />}
+          <img
+            src={theme === 'light' ? '/icons/ic_night.svg' : '/icons/ic_light.svg'}
+            alt=""
+          />
         </button>
       </div>
     </div>

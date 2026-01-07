@@ -3,11 +3,6 @@
 import React, { useRef, useState } from 'react';
 import SettingsPopup from './SettingsPopup';
 import { fixTimestamps } from '../services/api';
-import CloseIcon from '../assets/icons/ic_close.svg';
-import FixIcon from '../assets/icons/ic_fix_timestamps.svg';
-import SettingsIcon from '../assets/icons/ic_settings.svg';
-import HistoryIcon from '../assets/icons/ic_history.svg';
-import SmartIcon from '../assets/icons/ic_smart.svg';
 
 function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [prompt, setPrompt] = useState('');
@@ -136,7 +131,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
               onClick={toggleHistoryView}
               title="Close history"
             >
-              <CloseIcon />
+              <img src="/icons/ic_close.svg" alt="" />
             </button>
           </div>
 
@@ -197,7 +192,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
               title={isFixingTimestamps ? 'Fixing timestamps...' : 'Fix timestamps'}
               aria-label="Fix timestamps"
             >
-              <FixIcon />
+              <img src="/icons/ic_fix_timestamps.svg" alt="" />
             </button>
             <button
               type="button"
@@ -205,7 +200,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
               onClick={toggleHistoryView}
               title="Prompt history"
             >
-              <HistoryIcon />
+              <img src="/icons/ic_history.svg" alt="" />
             </button>
           </div>
 
@@ -244,7 +239,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                 disabled={isGenerating}
               >
                 {isGenerating ? 'Generating...' : 'Generate'}
-                <SmartIcon />
+                <img src="/icons/ic_smart.svg" alt="" />
               </button>
               <div className="settings-btn-wrapper">
                 <button
@@ -254,7 +249,7 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                   onClick={() => setShowSettingsPopup(!showSettingsPopup)}
                   title="Settings"
                 >
-                  <SettingsIcon />
+                  <img src="/icons/ic_settings.svg" alt="" />
                 </button>
               </div>
             </div>

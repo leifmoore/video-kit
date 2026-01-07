@@ -4,15 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import VideoRowMenu from './VideoRowMenu';
 import { getDownloadUrl } from '../services/api';
-import DownloadIcon from '../assets/icons/ic_download.svg';
-import CopyIcon from '../assets/icons/ic_copy.svg';
-import ScreenshotIcon from '../assets/icons/ic_screenshot.svg';
-import AddImageIcon from '../assets/icons/ic_addtogallery.svg';
-import ListIcon from '../assets/icons/ic_list.svg';
-import EmbedIcon from '../assets/icons/ic_embed.svg';
-import PrevUpIcon from '../assets/icons/ic_prev_up.svg';
-import NextDownIcon from '../assets/icons/ic_next_down.svg';
-import MoreIcon from '../assets/icons/ic_more_vert.svg';
 
 function OutputPanel({
   jobs,
@@ -232,7 +223,10 @@ function OutputPanel({
         onClick={onToggleView}
         title={viewMode === 'list' ? 'Big embed view' : 'List view'}
       >
-        {viewMode === 'list' ? <EmbedIcon /> : <ListIcon />}
+        <img
+          src={viewMode === 'list' ? '/icons/ic_embed.svg' : '/icons/ic_list.svg'}
+          alt=""
+        />
       </button>
 
       <div className={`output-content ${viewMode === 'list' ? 'list-mode' : ''}`}>
@@ -246,7 +240,7 @@ function OutputPanel({
                     onClick={handlePrevEmbed}
                     title="Previous video"
                   >
-                    <PrevUpIcon />
+                    <img src="/icons/ic_prev_up.svg" alt="" />
                   </button>
                 )}
 
@@ -271,28 +265,28 @@ function OutputPanel({
                       onClick={() => downloadVideo(selectedJob)}
                       title="Download video file"
                     >
-                      <DownloadIcon />
+                      <img src="/icons/ic_download.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={() => copyPrompt(selectedJob.prompt)}
                       title="Copy prompt"
                     >
-                      <CopyIcon />
+                      <img src="/icons/ic_copy.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={captureFrame}
                       title="Download current frame as file"
                     >
-                      <ScreenshotIcon />
+                      <img src="/icons/ic_screenshot.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={captureFrameToGallery}
                       title="Save current frame to gallery"
                     >
-                      <AddImageIcon />
+                      <img src="/icons/ic_addtogallery.svg" alt="" />
                     </button>
                   </div>
 
@@ -310,7 +304,7 @@ function OutputPanel({
                       onClick={handleNextEmbed}
                       title="Next video"
                     >
-                      <NextDownIcon />
+                      <img src="/icons/ic_next_down.svg" alt="" />
                     </button>
                   )}
               </>
@@ -346,28 +340,28 @@ function OutputPanel({
                       onClick={() => downloadVideo(selectedJob)}
                       title="Download video file"
                     >
-                      <DownloadIcon />
+                      <img src="/icons/ic_download.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={() => copyPrompt(selectedJob.prompt)}
                       title="Copy prompt"
                     >
-                      <CopyIcon />
+                      <img src="/icons/ic_copy.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={captureFrame}
                       title="Download current frame as file"
                     >
-                      <ScreenshotIcon />
+                      <img src="/icons/ic_screenshot.svg" alt="" />
                     </button>
                     <button
                       className="embed-btn"
                       onClick={captureFrameToGallery}
                       title="Save current frame to gallery"
                     >
-                      <AddImageIcon />
+                      <img src="/icons/ic_addtogallery.svg" alt="" />
                     </button>
                   </div>
 
@@ -459,7 +453,7 @@ function OutputPanel({
                       onClick={(e) => handleMoreClick(e, job)}
                       title="More options"
                     >
-                      <MoreIcon />
+                      <img src="/icons/ic_more_vert.svg" alt="" />
                     </button>
 
                     {openMenuJobId === job.id && (

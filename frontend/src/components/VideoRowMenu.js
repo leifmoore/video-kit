@@ -2,10 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import DeleteIcon from '../assets/icons/ic_delete.svg';
-import DownloadIcon from '../assets/icons/ic_download.svg';
-import CopyIcon from '../assets/icons/ic_copy.svg';
-import RefreshIcon from '../assets/icons/ic_refresh.svg';
 
 function VideoRowMenu({
   onDownload,
@@ -73,20 +69,20 @@ function VideoRowMenu({
     >
       {showCheckStatus && (
         <button className="video-row-menu-item" onClick={onCheckStatus}>
-          <RefreshIcon />
+          <img src="/icons/ic_refresh.svg" alt="" />
           <span>Check Status</span>
         </button>
       )}
       <button className="video-row-menu-item" onClick={onDownload}>
-        <DownloadIcon />
+        <img src="/icons/ic_download.svg" alt="" />
         <span>Download</span>
       </button>
       <button className="video-row-menu-item" onClick={onCopyPrompt}>
-        <CopyIcon />
+        <img src="/icons/ic_copy.svg" alt="" />
         <span>Copy Prompt</span>
       </button>
       <button className="video-row-menu-item" onClick={onDelete}>
-        <DeleteIcon />
+        <img src="/icons/ic_delete.svg" alt="" />
         <span>Delete</span>
       </button>
     </div>

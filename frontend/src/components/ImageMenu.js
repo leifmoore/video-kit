@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import DeleteIcon from '../assets/icons/ic_delete.svg';
 
 function ImageMenu({ onDelete, onClose, triggerRef }) {
   const menuRef = useRef(null);
@@ -48,7 +47,7 @@ function ImageMenu({ onDelete, onClose, triggerRef }) {
       }}
     >
       <button className="image-menu-item" onClick={onDelete}>
-        <DeleteIcon />
+        <img src="/icons/ic_delete.svg" alt="" />
         <span>Delete</span>
       </button>
     </div>

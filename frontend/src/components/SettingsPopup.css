@@ -31,10 +31,15 @@
   flex: 1;
 }
 
-.option-left svg {
+.option-left svg,
+.option-left img {
   width: 20px;
   height: 20px;
   color: #ffffff;
+}
+
+.option-left img {
+  filter: invert(1);
 }
 
 .option-label {
@@ -89,10 +94,15 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.submenu-item svg {
+.submenu-item svg,
+.submenu-item img {
   width: 20px;
   height: 20px;
   color: #ffffff;
+}
+
+.submenu-item img {
+  filter: invert(1);
 }
 
 .submenu-item span:not(.checkmark) {

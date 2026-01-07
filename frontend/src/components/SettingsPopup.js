@@ -2,10 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import PortraitIcon from '../assets/icons/ic_portrait.svg';
-import LandscapeIcon from '../assets/icons/ic_landscape.svg';
-import DurationIcon from '../assets/icons/ic_duration.svg';
-import EditIcon from '../assets/icons/ic_edit.svg';
 
 function SettingsPopup({
   aspectRatio,
@@ -80,7 +76,10 @@ function SettingsPopup({
         onMouseEnter={() => setActiveSubmenu('orientation')}
       >
         <div className="option-left">
-          {aspectRatio === 'portrait' ? <PortraitIcon /> : <LandscapeIcon />}
+          <img
+            src={aspectRatio === 'portrait' ? '/icons/ic_portrait.svg' : '/icons/ic_landscape.svg'}
+            alt=""
+          />
           <span className="option-label">Orientation</span>
         </div>
         <div className="option-right">
@@ -96,7 +95,7 @@ function SettingsPopup({
               className="submenu-item"
               onClick={() => handleOrientationSelect('portrait')}
             >
-              <PortraitIcon />
+              <img src="/icons/ic_portrait.svg" alt="" />
               <span>Portrait</span>
               {aspectRatio === 'portrait' && <span className="checkmark">✓</span>}
             </div>
@@ -104,7 +103,7 @@ function SettingsPopup({
               className="submenu-item"
               onClick={() => handleOrientationSelect('landscape')}
             >
-              <LandscapeIcon />
+              <img src="/icons/ic_landscape.svg" alt="" />
               <span>Landscape</span>
               {aspectRatio === 'landscape' && <span className="checkmark">✓</span>}
             </div>
@@ -117,7 +116,7 @@ function SettingsPopup({
         onMouseEnter={() => setActiveSubmenu('duration')}
       >
         <div className="option-left">
-          <DurationIcon />
+          <img src="/icons/ic_duration.svg" alt="" />
           <span className="option-label">Duration</span>
         </div>
         <div className="option-right">
@@ -128,12 +127,12 @@ function SettingsPopup({
         {activeSubmenu === 'duration' && (
           <div className="submenu">
             <div className="submenu-item" onClick={() => handleDurationSelect(10)}>
-              <DurationIcon />
+              <img src="/icons/ic_duration.svg" alt="" />
               <span>10s</span>
               {duration === 10 && <span className="checkmark">✓</span>}
             </div>
             <div className="submenu-item" onClick={() => handleDurationSelect(15)}>
-              <DurationIcon />
+              <img src="/icons/ic_duration.svg" alt="" />
               <span>15s</span>
               {duration === 15 && <span className="checkmark">✓</span>}
             </div>
@@ -146,7 +145,7 @@ function SettingsPopup({
         onMouseEnter={() => setActiveSubmenu('modifiers')}
       >
         <div className="option-left">
-          <EditIcon />
+          <img src="/icons/ic_edit.svg" alt="" />
           <span className="option-label">Prompt modifiers</span>
         </div>
         <div className="option-right">

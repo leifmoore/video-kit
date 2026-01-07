@@ -75,9 +75,14 @@
   background-color: var(--bg-tertiary);
 }
 
-.history-close-btn svg {
+.history-close-btn svg,
+.history-close-btn img {
   width: 20px;
   height: 20px;
+}
+
+.history-close-btn img {
+  filter: var(--icon-filter);
 }
 
 /* Prompt history container */
@@ -164,9 +169,14 @@
   background-color: var(--bg-tertiary);
 }
 
-.history-icon-btn svg {
+.history-icon-btn svg,
+.history-icon-btn img {
   width: 20px;
   height: 20px;
+}
+
+.history-icon-btn img {
+  filter: var(--icon-filter);
 }
 
 /* Fix timestamps button */
@@ -195,9 +205,14 @@
   cursor: not-allowed;
 }
 
-.fix-timestamps-btn svg {
+.fix-timestamps-btn svg,
+.fix-timestamps-btn img {
   width: 20px;
   height: 20px;
+}
+
+.fix-timestamps-btn img {
+  filter: var(--icon-filter);
 }
 
 /* Prompt textarea - flexes to fill space */
@@ -317,9 +332,14 @@
   cursor: not-allowed;
 }
 
-.param-btn svg {
+.param-btn svg,
+.param-btn img {
   width: 20px;
   height: 20px;
+}
+
+.param-btn img {
+  filter: var(--icon-filter);
 }
 
 /* Bottom row with generate button and settings */
@@ -356,9 +376,18 @@
   cursor: not-allowed;
 }
 
-.generate-btn-new svg {
+.generate-btn-new svg,
+.generate-btn-new img {
   width: 20px;
   height: 20px;
+}
+
+.generate-btn-new img {
+  filter: invert(1);
+}
+
+[data-theme="dark"] .generate-btn-new img {
+  filter: none;
 }
 
 /* Settings button wrapper */
@@ -391,7 +420,12 @@
   cursor: not-allowed;
 }
 
-.settings-btn svg {
+.settings-btn svg,
+.settings-btn img {
   width: 20px;
   height: 20px;
+}
+
+.settings-btn img {
+  filter: var(--icon-filter);
 }

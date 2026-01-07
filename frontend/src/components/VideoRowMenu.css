@@ -28,10 +28,15 @@
   background-color: var(--bg-tertiary);
 }
 
-.video-row-menu-item svg {
+.video-row-menu-item svg,
+.video-row-menu-item img {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+}
+
+.video-row-menu-item img {
+  filter: var(--icon-filter);
 }
 
 .video-row-menu-item span {

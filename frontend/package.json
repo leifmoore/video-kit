@@ -13,9 +13,6 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "devDependencies": {
-    "@svgr/webpack": "^8.1.0"
-  },
   "eslintConfig": {
     "extends": [
       "react-app"
