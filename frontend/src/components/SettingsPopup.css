@@ -11,12 +11,19 @@
 .popup-option {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
+  flex-direction: column;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
+  gap: 0.5rem;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
 }
 
@@ -115,4 +122,23 @@
   font-size: 1rem;
   color: #10b981;
   margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .settings-popup {
+    left: 1rem;
+    right: 1rem;
+    min-width: auto;
+  }
+
+  .option-row {
+    width: 100%;
+  }
+
+  .submenu {
+    position: static;
+    margin: 0.5rem 0 0;
+    min-width: 0;
+    width: 100%;
+  }
 }

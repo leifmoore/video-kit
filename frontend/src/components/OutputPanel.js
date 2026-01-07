@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import VideoRowMenu from './VideoRowMenu';
 import { getDownloadUrl } from '../services/api';
@@ -19,8 +19,11 @@ function OutputPanel({
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
   const [openMenuJobId, setOpenMenuJobId] = useState(null);
+  const [isVideoCollapsed, setIsVideoCollapsed] = useState(true);
   const menuButtonRefs = useRef({});
   const videoRef = useRef(null);
+  const completedIdsRef = useRef(new Set());
+  const hasInitializedRef = useRef(false);
 
   const captureFrame = () => {
     const video = videoRef.current;
@@ -78,25 +81,66 @@ function OutputPanel({
     }
   };
 
+  const completedJobs = useMemo(() => {
+    const completed = jobs.filter((job) => job.status === 'completed');
+    return completed.sort((a, b) => {
+      const timeA = new Date(a.completedAt || a.updatedAt || a.createdAt).getTime();
+      const timeB = new Date(b.completedAt || b.updatedAt || b.createdAt).getTime();
+      return timeB - timeA;
+    });
+  }, [jobs]);
+
   useEffect(() => {
-    if (!selectedJob && jobs.length > 0) {
-      const firstCompleted = jobs.find((job) => job.status === 'completed');
-      if (firstCompleted) {
-        setSelectedJob(firstCompleted);
+    const completedIds = new Set(completedJobs.map((job) => job.id));
+
+    if (!hasInitializedRef.current) {
+      if (completedJobs.length > 0) {
+        setSelectedJob(completedJobs[0]);
+        setCurrentEmbedIndex(0);
       }
+      completedIdsRef.current = completedIds;
+      hasInitializedRef.current = true;
+      return;
     }
-  }, [jobs, selectedJob]);
+
+    const newCompleted = completedJobs.find(
+      (job) => !completedIdsRef.current.has(job.id)
+    );
+
+    if (newCompleted) {
+      setSelectedJob(completedJobs[0]);
+      setCurrentEmbedIndex(0);
+      setIsVideoCollapsed(false);
+    } else if (selectedJob && !completedIds.has(selectedJob.id)) {
+      setSelectedJob(completedJobs[0] || null);
+      setCurrentEmbedIndex(0);
+    } else if (!selectedJob && completedJobs.length > 0) {
+      setSelectedJob(completedJobs[0]);
+      setCurrentEmbedIndex(0);
+    }
+
+    if (completedJobs.length === 0) {
+      setIsVideoCollapsed(true);
+    }
+
+    completedIdsRef.current = completedIds;
+  }, [completedJobs, selectedJob]);
 
   const filteredJobs = jobs.filter((job) => {
     if (statusFilter === 'completed' && job.status !== 'completed') return false;
     if (statusFilter === 'failed' && job.status !== 'failed') return false;
     return true;
   });
-
-  const completedJobs = jobs.filter((job) => job.status === 'completed');
+  const hasCompletedVideos = completedJobs.length > 0;
+  const showVideoArea = hasCompletedVideos && !isVideoCollapsed;
 
   const handleVideoClick = (job) => {
     setSelectedJob(job);
+    const completedIndex = completedJobs.findIndex((item) => item.id === job.id);
+    if (completedIndex !== -1) {
+      setCurrentEmbedIndex(completedIndex);
+    }
+    setIsVideoCollapsed(false);
   };
 
   const getStatusBadge = (status) => {
@@ -140,6 +184,7 @@ function OutputPanel({
       const nextIndex = currentEmbedIndex + 1;
       setCurrentEmbedIndex(nextIndex);
       setSelectedJob(completedJobs[nextIndex]);
+      setIsVideoCollapsed(false);
     }
   };
 
@@ -148,7 +193,15 @@ function OutputPanel({
       const prevIndex = currentEmbedIndex - 1;
       setCurrentEmbedIndex(prevIndex);
       setSelectedJob(completedJobs[prevIndex]);
+      setIsVideoCollapsed(false);
     }
+  };
+
+  const handleToggleCollapse = () => {
+    if (!hasCompletedVideos) {
+      return;
+    }
+    setIsVideoCollapsed((prev) => !prev);
   };
 
   const handleMoreClick = (e, job) => {
@@ -216,6 +269,31 @@ function OutputPanel({
     setJobToDelete(null);
   };
 
+  const completedBarArrow = hasCompletedVideos ? (showVideoArea ? 'v' : '>') : '-';
+
+  const completedBar = (
+    <button
+      type="button"
+      className={`completed-bar ${showVideoArea ? 'expanded' : 'collapsed'} ${
+        hasCompletedVideos ? '' : 'disabled'
+      }`}
+      onClick={handleToggleCollapse}
+      aria-expanded={showVideoArea}
+      disabled={!hasCompletedVideos}
+    >
+      <div className="completed-bar-left">
+        <span className="completed-bar-title">Completed videos</span>
+        <span className="completed-bar-count">{completedJobs.length}</span>
+      </div>
+      <div className="completed-bar-right">
+        <span className="completed-bar-status">
+          {hasCompletedVideos ? (showVideoArea ? 'Hide' : 'Show') : 'Waiting'}
+        </span>
+        <span className="completed-bar-arrow">{completedBarArrow}</span>
+      </div>
+    </button>
+  );
+
   return (
     <div className="output-panel-new">
       <button
@@ -232,7 +310,9 @@ function OutputPanel({
       <div className={`output-content ${viewMode === 'list' ? 'list-mode' : ''}`}>
         {viewMode === 'embed' ? (
           <div className="embed-view">
-            {selectedJob && selectedJob.status === 'completed' ? (
+            {completedBar}
+            {showVideoArea ? (
+              selectedJob && selectedJob.status === 'completed' ? (
               <>
                 {completedJobs.length > 1 && currentEmbedIndex > 0 && (
                   <button
@@ -308,76 +388,80 @@ function OutputPanel({
                     </button>
                   )}
               </>
-            ) : (
+              ) : (
               <div className="embed-placeholder">
                 <div className="placeholder-icon">▶</div>
                 <p>No completed videos yet. Start generating!</p>
               </div>
-            )}
+              )
+            ) : null}
           </div>
         ) : (
           <div className="list-view">
-            {selectedJob && selectedJob.status === 'completed' ? (
-              <div className="list-embed-section">
-                <div className="embed-video-container">
-                  <video
-                    ref={videoRef}
-                    key={selectedJob.id}
-                    controls
-                    loop
-                    crossOrigin="anonymous"
-                    className="embed-video-player"
-                  >
-                    <source src={selectedJob.videoUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-
-                <div className="embed-info">
-                  <div className="embed-actions">
-                    <button
-                      className="embed-btn"
-                      onClick={() => downloadVideo(selectedJob)}
-                      title="Download video file"
+            {completedBar}
+            {showVideoArea ? (
+              selectedJob && selectedJob.status === 'completed' ? (
+                <div className="list-embed-section">
+                  <div className="embed-video-container">
+                    <video
+                      ref={videoRef}
+                      key={selectedJob.id}
+                      controls
+                      loop
+                      crossOrigin="anonymous"
+                      className="embed-video-player"
                     >
-                      <img src="/icons/ic_download.svg" alt="" />
-                    </button>
-                    <button
-                      className="embed-btn"
-                      onClick={() => copyPrompt(selectedJob.prompt)}
-                      title="Copy prompt"
-                    >
-                      <img src="/icons/ic_copy.svg" alt="" />
-                    </button>
-                    <button
-                      className="embed-btn"
-                      onClick={captureFrame}
-                      title="Download current frame as file"
-                    >
-                      <img src="/icons/ic_screenshot.svg" alt="" />
-                    </button>
-                    <button
-                      className="embed-btn"
-                      onClick={captureFrameToGallery}
-                      title="Save current frame to gallery"
-                    >
-                      <img src="/icons/ic_addtogallery.svg" alt="" />
-                    </button>
+                      <source src={selectedJob.videoUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
 
-                  <div className="embed-meta">
-                    <span className="embed-date">
-                      {new Date(selectedJob.createdAt).toLocaleString()}
-                    </span>
+                  <div className="embed-info">
+                    <div className="embed-actions">
+                      <button
+                        className="embed-btn"
+                        onClick={() => downloadVideo(selectedJob)}
+                        title="Download video file"
+                      >
+                        <img src="/icons/ic_download.svg" alt="" />
+                      </button>
+                      <button
+                        className="embed-btn"
+                        onClick={() => copyPrompt(selectedJob.prompt)}
+                        title="Copy prompt"
+                      >
+                        <img src="/icons/ic_copy.svg" alt="" />
+                      </button>
+                      <button
+                        className="embed-btn"
+                        onClick={captureFrame}
+                        title="Download current frame as file"
+                      >
+                        <img src="/icons/ic_screenshot.svg" alt="" />
+                      </button>
+                      <button
+                        className="embed-btn"
+                        onClick={captureFrameToGallery}
+                        title="Save current frame to gallery"
+                      >
+                        <img src="/icons/ic_addtogallery.svg" alt="" />
+                      </button>
+                    </div>
+
+                    <div className="embed-meta">
+                      <span className="embed-date">
+                        {new Date(selectedJob.createdAt).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="embed-placeholder">
-                <div className="placeholder-icon">▶</div>
-                <p>No completed videos yet. Start generating!</p>
-              </div>
-            )}
+              ) : (
+                <div className="embed-placeholder">
+                  <div className="placeholder-icon">▶</div>
+                  <p>No completed videos yet. Start generating!</p>
+                </div>
+              )
+            ) : null}
 
             <div className="list-header">
               <div className="filter-chips">

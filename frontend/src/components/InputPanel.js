@@ -6,7 +6,7 @@ import { fixTimestamps } from '../services/api';
 
 function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const [prompt, setPrompt] = useState('');
-  const [aspectRatio, setAspectRatio] = useState('landscape');
+  const [aspectRatio, setAspectRatio] = useState('portrait');
   const [duration, setDuration] = useState(10);
   const [noMusic, setNoMusic] = useState(false);
   const [noCrowd, setNoCrowd] = useState(false);
@@ -194,25 +194,15 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
             >
               <img src="/icons/ic_fix_timestamps.svg" alt="" />
             </button>
-            <button
-              type="button"
-              className="history-icon-btn"
-              onClick={toggleHistoryView}
-              title="Prompt history"
-            >
-              <img src="/icons/ic_history.svg" alt="" />
-            </button>
           </div>
 
           {showSettingsPopup && (
             <SettingsPopup
-              aspectRatio={aspectRatio}
               duration={duration}
               noMusic={noMusic}
               noCrowd={noCrowd}
               noCommentators={noCommentators}
               likeAnime={likeAnime}
-              onAspectRatioChange={setAspectRatio}
               onDurationChange={setDuration}
               onToggleMusic={() => setNoMusic((prev) => !prev)}
               onToggleCrowd={() => setNoCrowd((prev) => !prev)}
@@ -241,6 +231,32 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
                 {isGenerating ? 'Generating...' : 'Generate'}
                 <img src="/icons/ic_smart.svg" alt="" />
               </button>
+              <div className="orientation-toggle" role="group" aria-label="Orientation">
+                <button
+                  type="button"
+                  className={`orientation-btn ${
+                    aspectRatio === 'portrait' ? 'active' : ''
+                  }`}
+                  onClick={() => setAspectRatio('portrait')}
+                  title="Portrait"
+                  aria-pressed={aspectRatio === 'portrait'}
+                  aria-label="Portrait orientation"
+                >
+                  <img src="/icons/ic_portrait.svg" alt="" />
+                </button>
+                <button
+                  type="button"
+                  className={`orientation-btn ${
+                    aspectRatio === 'landscape' ? 'active' : ''
+                  }`}
+                  onClick={() => setAspectRatio('landscape')}
+                  title="Landscape"
+                  aria-pressed={aspectRatio === 'landscape'}
+                  aria-label="Landscape orientation"
+                >
+                  <img src="/icons/ic_landscape.svg" alt="" />
+                </button>
+              </div>
               <div className="settings-btn-wrapper">
                 <button
                   type="button"
