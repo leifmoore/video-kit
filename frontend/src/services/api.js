@@ -1,3 +1,5 @@
+import { getApiKey } from './preferences';
+
 const handleJson = async (response) => {
   const text = await response.text();
   if (!response.ok) {
@@ -6,12 +8,21 @@ const handleJson = async (response) => {
   return text ? JSON.parse(text) : {};
 };
 
+const withKieApiKey = (headers = {}) => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return headers;
+  }
+  return { ...headers, 'x-kie-api-key': apiKey };
+};
+
 export const uploadImageToKie = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
 
   const response = await fetch('/api/kie/upload', {
     method: 'POST',
+    headers: withKieApiKey(),
     body: formData,
   });
 
@@ -21,7 +32,7 @@ export const uploadImageToKie = async (file) => {
 export const createKieTask = async (payload) => {
   const response = await fetch('/api/kie/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: withKieApiKey({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
 
@@ -30,7 +41,9 @@ export const createKieTask = async (payload) => {
 
 export const getKieTaskStatus = async (taskId, model = 'sora2') => {
   const params = new URLSearchParams({ taskId, model });
-  const response = await fetch(`/api/kie/status?${params.toString()}`);
+  const response = await fetch(`/api/kie/status?${params.toString()}`, {
+    headers: withKieApiKey(),
+  });
   return handleJson(response);
 };
 

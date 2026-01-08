@@ -229,6 +229,33 @@
   flex-shrink: 0;
 }
 
+.api-key-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.api-key-callout-btn {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.api-key-callout-btn:hover {
+  text-decoration: underline;
+}
+
 /* Modifier buttons */
 .modifier-buttons {
   display: flex;

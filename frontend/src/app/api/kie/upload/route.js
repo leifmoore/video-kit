@@ -11,9 +11,12 @@ const extractUploadUrl = (payload) => {
 };
 
 export async function POST(request) {
-  const apiKey = process.env.KIE_API_KEY;
+  const apiKey = request.headers.get('x-kie-api-key')?.trim();
   if (!apiKey) {
-    return Response.json({ error: 'KIE_API_KEY is not set' }, { status: 500 });
+    return Response.json(
+      { error: 'Kie API key is required. Add your key in Settings.' },
+      { status: 401 }
+    );
   }
 
   const formData = await request.formData();

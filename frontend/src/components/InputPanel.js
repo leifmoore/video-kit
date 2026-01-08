@@ -1,12 +1,25 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import SettingsPopup from './SettingsPopup';
 import { fixTimestamps } from '../services/api';
+import {
+  getDefaultOrientation,
+  setDefaultOrientation as persistDefaultOrientation,
+} from '../services/preferences';
 
-function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
+function InputPanel({
+  jobs,
+  selectedImage,
+  onGenerate,
+  isGenerating,
+  hasApiKey,
+  onOpenApiKey,
+}) {
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('portrait');
+  const [defaultOrientation, setDefaultOrientation] = useState('portrait');
+  const [hasUserToggledOrientation, setHasUserToggledOrientation] = useState(false);
   const [duration, setDuration] = useState(10);
   const [noMusic, setNoMusic] = useState(false);
   const [noCrowd, setNoCrowd] = useState(false);
@@ -20,8 +33,17 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
   const settingsBtnRef = useRef(null);
   const skipSettingsClickRef = useRef(false);
   const skipOrientationClickRef = useRef(false);
+  const hasUserToggledOrientationRef = useRef(false);
   const toggleSettingsPopup = () =>
     setShowSettingsPopup((prev) => !prev);
+
+  useEffect(() => {
+    const storedOrientation = getDefaultOrientation();
+    setDefaultOrientation(storedOrientation);
+    if (!hasUserToggledOrientationRef.current) {
+      setAspectRatio(storedOrientation);
+    }
+  }, []);
 
   const toggleCardExpansion = (jobId) => {
     setExpandedCards((prev) => ({
@@ -136,6 +158,8 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
     if (event.pointerType === 'touch' || event.pointerType === 'pen') {
       skipOrientationClickRef.current = true;
       setAspectRatio(nextOrientation);
+      setHasUserToggledOrientation(true);
+      hasUserToggledOrientationRef.current = true;
     }
   };
 
@@ -145,6 +169,16 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
       return;
     }
     setAspectRatio(nextOrientation);
+    setHasUserToggledOrientation(true);
+    hasUserToggledOrientationRef.current = true;
+  };
+
+  const handleDefaultOrientationChange = (nextOrientation) => {
+    setDefaultOrientation(nextOrientation);
+    persistDefaultOrientation(nextOrientation);
+    if (!hasUserToggledOrientation) {
+      setAspectRatio(nextOrientation);
+    }
   };
 
   return (
@@ -233,11 +267,13 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
           {showSettingsPopup && (
             <SettingsPopup
               duration={duration}
+              defaultOrientation={defaultOrientation}
               noMusic={noMusic}
               noCrowd={noCrowd}
               noCommentators={noCommentators}
               likeAnime={likeAnime}
               onDurationChange={setDuration}
+              onDefaultOrientationChange={handleDefaultOrientationChange}
               onToggleMusic={() => setNoMusic((prev) => !prev)}
               onToggleCrowd={() => setNoCrowd((prev) => !prev)}
               onToggleCommentators={() => setNoCommentators((prev) => !prev)}
@@ -256,6 +292,18 @@ function InputPanel({ jobs, selectedImage, onGenerate, isGenerating }) {
           </div>
 
           <div className="input-controls">
+            {!hasApiKey && (
+              <div className="api-key-callout">
+                <span>API key required to generate.</span>
+                <button
+                  type="button"
+                  className="api-key-callout-btn"
+                  onClick={onOpenApiKey}
+                >
+                  Add key
+                </button>
+              </div>
+            )}
             <div className="bottom-row">
               <button
                 type="submit"

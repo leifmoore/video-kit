@@ -3,9 +3,12 @@ export const runtime = 'nodejs';
 const API_BASE_URL = 'https://api.kie.ai';
 
 export async function GET(request) {
-  const apiKey = process.env.KIE_API_KEY;
+  const apiKey = request.headers.get('x-kie-api-key')?.trim();
   if (!apiKey) {
-    return Response.json({ error: 'KIE_API_KEY is not set' }, { status: 500 });
+    return Response.json(
+      { error: 'Kie API key is required. Add your key in Settings.' },
+      { status: 401 }
+    );
   }
 
   const { searchParams } = new URL(request.url);

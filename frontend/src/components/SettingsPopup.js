@@ -5,11 +5,13 @@ import ReactDOM from 'react-dom';
 
 function SettingsPopup({
   duration,
+  defaultOrientation,
   noMusic,
   noCrowd,
   noCommentators,
   likeAnime,
   onDurationChange,
+  onDefaultOrientationChange,
   onToggleMusic,
   onToggleCrowd,
   onToggleCommentators,
@@ -64,6 +66,14 @@ function SettingsPopup({
     setActiveSubmenu(null);
   };
 
+  const handleDefaultOrientationSelect = (orientation) => {
+    onDefaultOrientationChange(orientation);
+    setActiveSubmenu(null);
+  };
+
+  const formatOrientation = (orientation) =>
+    orientation === 'landscape' ? 'Landscape' : 'Portrait';
+
   const toggleSubmenu = (submenu) => {
     setActiveSubmenu((prev) => (prev === submenu ? null : submenu));
   };
@@ -102,6 +112,46 @@ function SettingsPopup({
               <img src="/icons/ic_duration.svg" alt="" />
               <span>15s</span>
               {duration === 15 && <span className="checkmark">✓</span>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="popup-option" onClick={() => toggleSubmenu('orientation')}>
+        <div className="option-row">
+          <div className="option-left">
+            <img src="/icons/ic_portrait.svg" alt="" />
+            <span className="option-label">Default orientation</span>
+          </div>
+          <div className="option-right">
+            <span className="option-value">
+              {formatOrientation(defaultOrientation)}
+            </span>
+            <span className="option-arrow">›</span>
+          </div>
+        </div>
+
+        {activeSubmenu === 'orientation' && (
+          <div className="submenu" onClick={(event) => event.stopPropagation()}>
+            <div
+              className="submenu-item"
+              onClick={() => handleDefaultOrientationSelect('portrait')}
+            >
+              <img src="/icons/ic_portrait.svg" alt="" />
+              <span>Portrait</span>
+              {defaultOrientation === 'portrait' && (
+                <span className="checkmark">✓</span>
+              )}
+            </div>
+            <div
+              className="submenu-item"
+              onClick={() => handleDefaultOrientationSelect('landscape')}
+            >
+              <img src="/icons/ic_landscape.svg" alt="" />
+              <span>Landscape</span>
+              {defaultOrientation === 'landscape' && (
+                <span className="checkmark">✓</span>
+              )}
             </div>
           </div>
         )}

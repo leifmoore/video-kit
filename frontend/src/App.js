@@ -10,6 +10,7 @@ import {
   getKieTaskStatus,
   uploadImageToKie,
 } from './services/api';
+import { getApiKey } from './services/preferences';
 import {
   clearAllData,
   deleteImage,
@@ -43,6 +44,7 @@ function App() {
   const [theme, setTheme] = useState('light');
   const [viewMode, setViewMode] = useState('list');
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [customImages, setCustomImages] = useState([]);
 
@@ -61,6 +63,11 @@ function App() {
   useEffect(() => {
     loadImages();
     loadJobs();
+    const storedKey = getApiKey();
+    setHasApiKey(Boolean(storedKey));
+    if (!storedKey) {
+      setShowApiKeyModal(true);
+    }
 
     return () => {
       clearPreviewUrls();
@@ -274,6 +281,12 @@ function App() {
   };
 
   const handleGenerate = async (formData) => {
+    if (!getApiKey()) {
+      alert('Please add your Kie API key before generating.');
+      setShowApiKeyModal(true);
+      return;
+    }
+
     if (!selectedImage?.blob) {
       alert('Please select or upload an image');
       return;
@@ -437,6 +450,8 @@ function App() {
           selectedImage={selectedImage}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          hasApiKey={hasApiKey}
+          onOpenApiKey={() => setShowApiKeyModal(true)}
         />
 
         <OutputPanel
@@ -450,7 +465,11 @@ function App() {
       </div>
 
       {showApiKeyModal && (
-        <ApiKeyModal onClose={() => setShowApiKeyModal(false)} />
+        <ApiKeyModal
+          onClose={() => setShowApiKeyModal(false)}
+          onSaved={() => setHasApiKey(true)}
+          onCleared={() => setHasApiKey(false)}
+        />
       )}
     </div>
   );
